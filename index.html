@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Message: Aaisha Has Awakened!</title>
+    <style>
+        /* --- CORE SYSTEM STYLES --- */
+        :root {
+            --bg-color: #040711;
+            --container-bg: #0b1126;
+            --text-color: #d8e2ff;
+            --primary-accent: #38bdf8; 
+            --level-up-accent: #4ade80; 
+            --max-stat-accent: #a78bfa; 
+            --funny-stat-accent: #fbbf24; 
+            --error-accent: #f43f5e; 
+            --border-color: #1e293b;
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            overflow-x: hidden;
+            background-image: radial-gradient(var(--container-bg) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* --- THE VAULT STYLES --- */
+        #vault-screen {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            background-color: var(--bg-color);
+            z-index: 1000;
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+        }
+        
+        .vault-box {
+            border: 2px solid var(--primary-accent);
+            padding: 40px;
+            border-radius: 10px;
+            background: rgba(11, 17, 38, 0.9);
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h2 { color: var(--primary-accent); text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--primary-accent); }
+
+        input[type="password"] {
+            padding: 12px;
+            font-size: 18px;
+            background: #000;
+            border: 1px solid var(--border-color);
+            color: var(--primary-accent);
+            margin-bottom: 20px;
+            text-align: center;
+            outline: none;
+            width: 80%;
+            border-radius: 5px;
+        }
+
+        button.unlock-btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            background: var(--primary-accent);
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        button.unlock-btn:hover { box-shadow: 0 0 20px var(--primary-accent); }
+        #error-msg { color: var(--error-accent); margin-top: 15px; display: none; font-weight: bold; }
+
+        /* --- MAIN CONTENT STYLES --- */
+        #main-content { display: none; padding: 20px; margin-top: 50px; }
+
+        .level-up-banner {
+            border: 2px solid var(--level-up-accent);
+            padding: 30px;
+            margin: 40px auto;
+            max-width: 650px;
+            box-shadow: 0 0 40px rgba(74, 222, 128, 0.3);
+            border-radius: 8px;
+            background: linear-gradient(180deg, rgba(74, 222, 128, 0.1) 0%, transparent 100%);
+        }
+
+        .level-up-banner h1 { 
+            color: var(--level-up-accent); 
+            text-transform: uppercase; 
+            letter-spacing: 4px;
+            font-size: 2.8em;
+            margin-top: 0;
+            text-shadow: 0 0 15px var(--level-up-accent);
+        }
+        
+        /* Stats Section */
+        .stats-container {
+            max-width: 650px;
+            margin: 0 auto 50px auto;
+            text-align: left;
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 8px;
+            background: var(--container-bg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .stat-row { margin-bottom: 25px; }
+        .stat-name { font-weight: bold; margin-bottom: 5px; color: var(--primary-accent); font-size: 1.2em;}
+        .stat-desc { font-size: 0.85em; color: #94a3b8; margin-bottom: 8px; font-style: italic;}
+        
+        .stat-bar-bg {
+            width: 100%; background-color: #000; border: 1px solid var(--border-color);
+            border-radius: 5px; height: 22px; overflow: hidden; position: relative;
+        }
+
+        .stat-bar-fill {
+            height: 100%; background-color: var(--primary-accent);
+            width: 0%; transition: width 2s ease-in-out; box-shadow: 0 0 10px var(--primary-accent);
+        }
+
+        /* Custom Stat Colors */
+        .stat-max { background-color: var(--max-stat-accent); box-shadow: 0 0 10px var(--max-stat-accent); }
+        .max-name { color: var(--max-stat-accent) !important; }
+        .stat-funny { background-color: var(--funny-stat-accent); box-shadow: 0 0 10px var(--funny-stat-accent); }
+        .funny-name { color: var(--funny-stat-accent) !important; }
+        .stat-negative { background-color: var(--error-accent); box-shadow: 0 0 10px var(--error-accent); width: 0%; float: right;}
+        .negative-name { color: var(--error-accent) !important; }
+
+        /* --- MCQ SECTION --- */
+        .mcq-container {
+            max-width: 700px; margin: 0 auto; padding-bottom: 80px; text-align: left;
+        }
+
+        .mcq-card {
+            background: rgba(11, 17, 38, 0.7);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--funny-stat-accent);
+            border-radius: 8px; padding: 25px; margin-bottom: 30px;
+            opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .mcq-card.visible { opacity: 1; transform: translateY(0); }
+
+        .mcq-question { color: #fff; font-size: 1.3em; margin-bottom: 20px; font-family: 'Helvetica Neue', sans-serif; }
+
+        .mcq-option {
+            display: block; width: 100%; text-align: left; background: #000; color: var(--text-color);
+            border: 1px solid var(--border-color); padding: 15px; margin-bottom: 10px; border-radius: 5px;
+            font-size: 1.1em; cursor: pointer; transition: 0.3s; font-family: var(--font-main);
+        }
+
+        .mcq-option:hover { border-color: var(--primary-accent); background: rgba(56, 189, 248, 0.1); }
+        
+        .correct { background: rgba(74, 222, 128, 0.2) !important; border-color: var(--level-up-accent) !important; color: var(--level-up-accent) !important; }
+        .incorrect { background: rgba(244, 63, 94, 0.2) !important; border-color: var(--error-accent) !important; color: var(--error-accent) !important; }
+
+        /* --- CUTE NOTE SECTION --- */
+        .cute-note-card {
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-left: 4px solid var(--error-accent);
+            border-radius: 8px; padding: 30px; margin-top: 50px; margin-bottom: 30px;
+            text-align: center; opacity: 0; transform: translateY(30px); transition: all 1s ease-out;
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.2);
+        }
+        .cute-note-card.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 600px) { .level-up-banner h1 { font-size: 2em; } }
+    </style>
+</head>
+<body>
+
+    <!-- THE VAULT -->
+    <div id="vault-screen">
+        <div class="vault-box">
+            <h2>System Awakening</h2>
+            <p style="color: #94a3b8; margin-bottom: 30px;">[Attention Aditya] Enter system key to awake Player Aaisha:</p>
+            <input type="password" id="password-input" placeholder="Enter Secret Code">
+            <br>
+            <button class="unlock-btn" onclick="checkPassword()">Initialize</button>
+            <p id="error-msg">[Error] System Key Invalid. Access Denied.</p>
+        </div>
+    </div>
+
+    <!-- THE REVEAL -->
+    <div id="main-content">
+        
+        <div class="level-up-banner">
+            <h1>Level Up!</h1>
+            <h2 style="color: #e2e8f0;">Player: Aaisha</h2>
+            <p style="font-size: 1.3em; color: var(--level-up-accent);">[System Notification] You have successfully reached Level 19.</p>
+        </div>
+
+        <div class="stats-container">
+            <h3 style="text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-top: 0; color: #fff;">Player Status: 19th Awakening</h3>
+            
+            <div class="stat-row">
+                <div class="stat-name max-name">Cuteness: Max Level</div>
+                <div class="stat-desc">Warning: System overload. Dangerously adorable.</div>
+                <div class="stat-bar-bg"><div class="stat-bar-fill stat-max" id="stat1"></div></div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-name">Eyes: Ethereal Tier</div>
+                <div class="stat-desc">Passive Skill: Can cast 'Mind Control' on Aditya instantly.</div>
+                <div class="stat-bar-bg"><div class="stat-bar-fill" id="stat2"></div></div>
+            </div>
+            
+            <div class="stat-row">
+                <div class="stat-name max-name">Helping Nature: Saint Class</div>
+                <div class="stat-desc">Always there to carry the team (and me) when things get rough.</div>
+                <div class="stat-bar-bg"><div class="stat-bar-fill stat-max" id="stat3"></div></div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-name funny-name">Coolness: Ice Monarch Level</div>
+                <div class="stat-desc">Effortlessly cool. Doesn't even have to try.</div>
+                <div class="stat-bar-bg"><div class="stat-bar-fill stat-funny" id="stat4"></div></div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-name max-name">Personality: SSR Grade Drop</div>
+                <div class="stat-desc">The rarest drop in the entire game. I got incredibly lucky.</div>
+                <div class="stat-bar-bg"><div class="stat-bar-fill stat-max" id="stat5"></div></div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-name funny-name">Punctuality: D-Rank</div>
+                <div class="stat-desc">Uses Time Distortion Magic to turn 5 minutes into an hour.</div>
+                <div class="stat-bar-bg"><div class="stat-bar-fill stat-funny" id="stat6"></div></div>
+            </div>
+
+            <!-- The -7/100 Stat -->
+            <div class="stat-row">
+                <div class="stat-name negative-name">Validation Given to Adi: -7 / 100</div>
+                <div class="stat-desc">[System Error] Stat completely broken. Refuses to admit he's right or compliment him unless bribed.</div>
+                <div class="stat-bar-bg"><div class="stat-bar-fill stat-negative" id="stat7"></div></div>
+            </div>
+        </div>
+
+        <h2 style="color: var(--funny-stat-accent); margin-top: 70px; font-size: 1.8em; text-transform: uppercase; letter-spacing: 1px;">[ Level 19 Qualification Test ]</h2>
+        <p style="margin-bottom: 50px; color: #94a3b8;">[System Prompt] Passing this test is required to proceed...</p>
+
+        <!-- MCQ SECTION -->
+        <div class="mcq-container">
+            
+            <!-- Question 1 -->
+            <div class="mcq-card">
+                <div class="mcq-question">1. System Memory Check: When was our first kiss? 😘</div>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 1)">A) 14 Feb 2026 (Too cliché)</button>
+                <button class="mcq-option" onclick="checkAnswer(this, true, 1)">B) 15 Feb 2026</button>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 1)">C) 16 Feb 2026</button>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 1)">D) I don't remember (Warning: Instant System Crash)</button>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="mcq-card">
+                <div class="mcq-question">2. Core Memory Check: When was our first dinner date? 🍽️</div>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 2)">A) 1 March</button>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 2)">B) 3 March</button>
+                <button class="mcq-option" onclick="checkAnswer(this, true, 2)">C) 4 March</button>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 2)">D) 10 March</button>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="mcq-card">
+                <div class="mcq-question">3. Partner Trivia: What is Aditya's favourite sport? 🏐</div>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 3)">A) Cricket</button>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 3)">B) Badminton (A solid distraction, but not the favorite!)</button>
+                <button class="mcq-option" onclick="checkAnswer(this, true, 3)">C) Volleyball</button>
+                <button class="mcq-option" onclick="checkAnswer(this, false, 3)">D) Annoying Aaisha</button>
+            </div>
+
+            <!-- Cute Final Note -->
+            <div class="cute-note-card">
+                <h3 style="color: var(--error-accent); font-size: 1.5em; text-transform: uppercase; margin-top: 0;">[ Final System Reward Unlocked ]</h3>
+                <p style="font-size: 1.5em; font-family: 'Helvetica Neue', sans-serif; color: #fff; font-style: italic; line-height: 1.5;">
+                    "i lovvee youuuh jaanu"
+                </p>
+                <p style="color: var(--error-accent); font-weight: bold; margin-bottom: 0;">Happy 19th Birthday! ❤️</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // --- VAULT LOGIC (Password: aaishaadi) ---
+        function checkPassword() {
+            const input = document.getElementById("password-input").value;
+            const correctPassword = "aaishaadi"; 
+
+            if(input.toLowerCase() === correctPassword) {
+                const vault = document.getElementById("vault-screen");
+                vault.style.opacity = "0";
+                vault.style.transform = "scale(0.8)";
+                
+                setTimeout(() => {
+                    vault.style.display = "none";
+                    document.getElementById("main-content").style.display = "block";
+                    
+                    // Animate the stats
+                    setTimeout(() => {
+                        document.getElementById("stat1").style.width = "100%";
+                        document.getElementById("stat2").style.width = "99%";
+                        document.getElementById("stat3").style.width = "100%";
+                        document.getElementById("stat4").style.width = "95%";
+                        document.getElementById("stat5").style.width = "100%";
+                        document.getElementById("stat6").style.width = "15%"; 
+                        document.getElementById("stat7").style.width = "7%"; 
+                    }, 500);
+                }, 1000);
+            } else {
+                document.getElementById("error-msg").style.display = "block";
+            }
+        }
+
+        document.getElementById("password-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); checkPassword();
+            }
+        });
+
+        // --- MCQ LOGIC ---
+        function checkAnswer(button, isCorrect, questionNum) {
+            const card = button.parentElement;
+            const buttons = card.querySelectorAll('.mcq-option');
+            
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.cursor = "not-allowed";
+                btn.style.opacity = "0.7";
+            });
+
+            button.style.opacity = "1";
+            if (isCorrect) {
+                button.classList.add('correct');
+                button.innerText += " ✅ Correct!";
+            } else {
+                button.classList.add('incorrect');
+                button.innerText += " ❌ WRONG (System Disapproves)";
+            }
+        }
+
+        // --- SCROLL ANIMATION ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.2 });
+
+        const cards = document.querySelectorAll('.mcq-card, .cute-note-card');
+        cards.forEach(card => observer.observe(card));
+    </script>
+</body>
+</html>
